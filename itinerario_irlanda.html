@@ -707,18 +707,51 @@ const optionalLandmarks = [
 
 L.polyline(routeCoords, { color: '#2d6a4f', weight: 3, opacity: 0.55, dashArray: '7,5' }).addTo(map);
 
-// Main stop markers
+// Main stop markers — numbered labels for route stops, small square for ferry
 mainStops.forEach((stop, i) => {
   const isFerry = stop.name.includes('Ferry');
-  const marker = L.circleMarker(stop.coords, {
-    radius: isFerry ? 8 : 11,
-    fillColor: stop.color,
-    color: 'white',
-    weight: 2,
-    opacity: 1,
-    fillOpacity: 0.92
-  }).addTo(map);
-  marker.bindPopup(`<strong>${stop.icon} ${stop.name}</strong><br><span style="color:#555;font-size:0.82rem;">${stop.day}</span>`);
+  let marker;
+  if (isFerry) {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:14px;height:14px;background:${stop.color};border:2px solid white;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,0.4);"></div>`,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+    marker = L.marker(stop.coords, { icon }).addTo(map);
+  } else {
+    // Derive day-of-month from the day field (e.g. "Días 1–4 · 14–17 mar" → "14–17", or "Día 5 · Mié 18 ·" → "18")
+    const dayMatch = stop.day.match(/·\s*(?:Mié|Jue|Vie|Sáb|Dom|Lun|Mar)\s+(\d+)/);
+    const multiMatch = stop.day.match(/(\d+)–(\d+)\s+mar/);
+    const label = dayMatch ? dayMatch[1] : (multiMatch ? multiMatch[1] + '–' + multiMatch[2] : String(i + 1));
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        background:${stop.color};
+        color:white;
+        border:2px solid white;
+        border-radius:50%;
+        width:26px;height:26px;
+        display:flex;align-items:center;justify-content:center;
+        font-size:0.64rem;font-weight:bold;font-family:sans-serif;
+        box-shadow:0 1px 4px rgba(0,0,0,0.45);
+        white-space:nowrap;
+      ">${label}</div>`,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    });
+    marker = L.marker(stop.coords, { icon }).addTo(map);
+  }
+  // Build popup — add scroll link for day cards
+  const dayIdMatch = stop.day.match(/Día\s+(\d+)/i);
+  const dateMatch = stop.day.match(/(?:Mié|Jue|Vie|Sáb|Dom|Lun|Mar)\s+(\d+)/);
+  let scrollLink = '';
+  if (dateMatch) {
+    const d = parseInt(dateMatch[1]);
+    const cardId = `day${d}`;
+    scrollLink = `<br><a href="javascript:void(0)" onclick="(function(){var el=document.getElementById('${cardId}');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});var body=document.getElementById('body-${cardId}');if(body&&!body.classList.contains('open'))toggle('${cardId}');}})();" style="font-size:0.78rem;color:var(--green);font-weight:bold;">Ver día ${d} →</a>`;
+  }
+  marker.bindPopup(`<strong>${stop.icon} ${stop.name}</strong><br><span style="color:#555;font-size:0.82rem;">${stop.day}</span>${scrollLink}`);
 });
 
 // Optional landmark markers (diamond shape via rotated square using divIcon)
@@ -782,7 +815,7 @@ const dublinPoints = [
 
 const belfastPoints = [
   { name: "🚢 Titanic Belfast", coords: [54.6071, -5.9110], color: "#2980b9", desc: "Museo del Titanic — imprescindible" },
-  { name: "🏛️ St George's Market", coords: [53.5960, -5.9238], color: "#2980b9", desc: "Recomendación Shane — mercado histórico" },
+  { name: "🏛️ St George's Market", coords: [54.5960, -5.9238], color: "#2980b9", desc: "Recomendación Shane — mercado histórico" },
   { name: "🏛️ Cathedral Quarter", coords: [54.6006, -5.9282], color: "#2980b9", desc: "Barrio bohemio — murales y bares" },
   { name: "🏛️ Hill Street", coords: [54.6015, -5.9275], color: "#2980b9", desc: "Recomendación Shane" },
   { name: "🛍️ Queens Arcade", coords: [54.5971, -5.9320], color: "#2980b9", desc: "Recomendación Shane" },
