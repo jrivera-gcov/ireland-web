@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Irlanda 14–23 Marzo 2026 · Javi & Papá</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root {
+    --green: #2d6a4f;
+    --light-green: #40916c;
+    --pale-green: #d8f3dc;
+    --gold: #b7791f;
+    --cream: #fefae0;
+    --dark: #1b1b2f;
+    --gray: #6c757d;
+    --red: #c0392b;
+    --blue: #2980b9;
+    --purple: #8e44ad;
+    --orange: #e67e22;
+    --teal: #16a085;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; background: #f5f0e8; color: var(--dark); }
+
+  header {
+    background: linear-gradient(135deg, var(--green) 0%, var(--light-green) 100%);
+    color: white; padding: 32px 24px 24px; text-align: center; position: relative; overflow: hidden;
+  }
+  header::before { content: '☘️'; position: absolute; font-size: 120px; opacity: 0.08; top: -20px; left: -20px; }
+  header::after  { content: '☘️'; position: absolute; font-size: 120px; opacity: 0.08; bottom: -20px; right: -20px; }
+  header h1 { font-size: 2.2rem; letter-spacing: 1px; margin-bottom: 6px; }
+  header p { font-size: 1rem; opacity: 0.85; }
+  .subtitle { font-size: 0.9rem; margin-top: 8px; opacity: 0.75; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+  /* URGENT */
+  .urgent-box { background: #fff5f5; border: 2px solid #fc8181; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+  .urgent-box h2 { color: var(--red); font-size: 1.1rem; margin-bottom: 12px; }
+  .urgent-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 7px; font-size: 0.88rem; line-height: 1.5; }
+  .badge { width: 20px; height: 20px; border-radius: 50%; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; color: white; }
+  .badge.red { background: #c0392b; }
+  .badge.yellow { background: #d68910; }
+
+  /* ROUTE TABLE */
+  .route-table-wrap { background: white; border-radius: 12px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .route-table-wrap h2 { background: var(--dark); color: white; padding: 14px 20px; font-size: 1rem; letter-spacing: 0.5px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { background: #f8f9fa; padding: 10px 14px; text-align: left; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); border-bottom: 2px solid #e0e0e0; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+  .day-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; color: white; font-weight: bold; font-size: 0.82rem; flex-shrink: 0; }
+  .night-tag { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.78rem; font-weight: bold; }
+  .stage-sep td { background: #f0f4f0; font-size: 0.78rem; font-weight: bold; color: var(--green); text-transform: uppercase; letter-spacing: 0.8px; padding: 6px 14px; }
+
+  /* MAP */
+  #map { height: 500px; border-radius: 12px; margin-bottom: 24px; border: 2px solid #ccc; }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; background: white; border-radius: 10px; padding: 14px 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); font-size: 0.84rem; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .leg-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+  .leg-diamond { width: 12px; height: 12px; background: #f39c12; transform: rotate(45deg); flex-shrink: 0; border: 1px solid #e67e22; }
+  .leg-ferry { width: 14px; height: 14px; background: #3498db; border-radius: 2px; flex-shrink: 0; }
+
+  /* STAGE LABELS */
+  .stage-label { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 16px; }
+  .stage1 { background: var(--pale-green); color: var(--green); }
+  .stage2 { background: #fff3cd; color: #856404; }
+
+  /* DAY CARDS */
+  .day-card { background: white; border-radius: 14px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .day-header { padding: 14px 20px; display: flex; align-items: center; gap: 14px; cursor: pointer; user-select: none; transition: background 0.2s; }
+  .day-header:hover { filter: brightness(0.97); }
+  .day-num { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.05rem; flex-shrink: 0; color: white; }
+  .day-info h3 { font-size: 1rem; }
+  .day-info .route { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+  .day-arrow { margin-left: auto; font-size: 1.1rem; transition: transform 0.3s; }
+  .day-arrow.open { transform: rotate(180deg); }
+  .day-body { display: none; padding: 0 20px 20px; border-top: 1px solid #f0f0f0; }
+  .day-body.open { display: block; }
+
+  .segment { margin-top: 16px; }
+  .segment-title { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .segment-title::after { content: ''; flex: 1; height: 1px; background: #e0e0e0; }
+
+  .activity { display: flex; gap: 12px; margin-bottom: 10px; }
+  .act-time { font-size: 0.76rem; color: var(--gray); font-family: monospace; min-width: 48px; padding-top: 2px; }
+  .act-content h4 { font-size: 0.9rem; margin-bottom: 2px; }
+  .act-content p { font-size: 0.83rem; color: #555; line-height: 1.5; }
+
+  .logistica { background: #fffbeb; border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 0 8px 8px 0; margin-top: 14px; font-size: 0.83rem; line-height: 1.6; }
+  .logistica strong { color: var(--gold); }
+  .amigos-tip { background: var(--pale-green); border-left: 3px solid var(--light-green); padding: 10px 14px; border-radius: 0 8px 8px 0; margin-top: 10px; font-size: 0.83rem; line-height: 1.6; font-style: italic; }
+  .amigos-tip strong { color: var(--green); font-style: normal; }
+  .night-box { background: #1b1b2f; color: white; border-radius: 8px; padding: 12px 16px; margin-top: 14px; font-size: 0.84rem; line-height: 1.7; }
+  .night-box .night-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.6; margin-bottom: 4px; }
+
+  /* DAY COLORS */
+  .c-dublin { background: var(--green); }
+  .h-dublin { background: linear-gradient(90deg, #e8f5e9, white); }
+  .c-road1 { background: #c0392b; }
+  .h-road1 { background: linear-gradient(90deg, #fde8e8, white); }
+  .c-road2 { background: #8e44ad; }
+  .h-road2 { background: linear-gradient(90deg, #f3e8fd, white); }
+  .c-road3 { background: #2980b9; }
+  .h-road3 { background: linear-gradient(90deg, #e8f4fd, white); }
+  .c-road4 { background: #e67e22; }
+  .h-road4 { background: linear-gradient(90deg, #fef3e8, white); }
+  .c-road5 { background: #16a085; }
+  .h-road5 { background: linear-gradient(90deg, #e8f8f5, white); }
+  .c-return { background: #2c3e50; }
+  .h-return { background: linear-gradient(90deg, #eaecee, white); }
+  .c-patricks { background: #e74c3c; }
+  .h-patricks { background: linear-gradient(90deg, #fff0f3, white); }
+
+  /* CONTROLS */
+  .controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 7px 16px; border-radius: 20px; border: 1px solid var(--green); background: white; color: var(--green); cursor: pointer; font-size: 0.82rem; font-weight: bold; transition: all 0.2s; }
+  .btn:hover { background: var(--green); color: white; }
+
+  /* OPTIONAL CHIP */
+  .opt-chip { display: inline-block; background: #fff3cd; border: 1px solid #ffd700; color: #856404; border-radius: 10px; padding: 1px 8px; font-size: 0.72rem; margin-left: 6px; vertical-align: middle; }
+
+  footer { text-align: center; padding: 24px; font-size: 0.8rem; color: var(--gray); }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.6rem; }
+    .day-info h3 { font-size: 0.9rem; }
+    table { font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>☘️ Irlanda · Javi & Papá</h1>
+  <p>14 – 23 de Marzo de 2026</p>
+  <p class="subtitle">Itinerario Personalizado · Norte + Sur</p>
+</header>
+
+<div class="container">
+
+  <!-- URGENT -->
+  <div class="urgent-box">
+    <h2>⚠️ Reservas Urgentes</h2>
+    <div class="urgent-item"><span class="badge red">!</span><span><strong>Alojamiento Dunfanaghy (18 marzo)</strong> — Arnold's Hotel o Carrig Rua. Oferta muy limitada en rural.</span></div>
+    <div class="urgent-item"><span class="badge red">!</span><span><strong>Cliffs of Moher (20 marzo)</strong> — Entrada con horario obligatoria en cliffofmoher.ie.</span></div>
+
+    <div class="urgent-item"><span class="badge yellow">~</span><span><strong>Alojamiento Galway (19 marzo, jueves)</strong> — Buena oferta, pero reservar con antelación.</span></div>
+    <div class="urgent-item"><span class="badge yellow">~</span><span><strong>Alojamiento Killarney (20–21 marzo)</strong> — Base para Kerry.</span></div>
+    <div class="urgent-item"><span class="badge yellow">~</span><span><strong>Alojamiento Kinsale (22 marzo)</strong> — Última noche del viaje.</span></div>
+  </div>
+
+  <!-- ROUTE TABLE -->
+  <div class="route-table-wrap">
+    <h2>📍 Hoja de Ruta — 10 Días</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Fecha</th><th>Ruta del día</th><th>Noche</th></tr>
+      </thead>
+      <tbody>
+        <tr class="stage-sep"><td colspan="4">☘️ Etapa 1 — Dublín</td></tr>
+        <tr>
+          <td><span class="day-badge" style="background:var(--green)">1</span></td>
+          <td>Sáb 14</td>
+          <td>✈️ Llegada Dublin 12:40 · Temple Bar · Dublin Castle</td>
+          <td><span class="night-tag" style="background:#e8f5e9;color:var(--green)">Dublin</span></td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background:var(--green)">2</span></td>
+          <td>Dom 15</td>
+          <td>Guinness Storehouse · Trinity College + Book of Kells</td>
+          <td><span class="night-tag" style="background:#e8f5e9;color:var(--green)">Dublin</span></td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background:var(--green)">3</span></td>
+          <td>Lun 16</td>
+          <td>Excursión Howth (DART · Cliff Walk · Fish & Chips)</td>
+          <td><span class="night-tag" style="background:#e8f5e9;color:var(--green)">Dublin</span></td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background:#e74c3c">4</span></td>
+          <td>Mar 17</td>
+          <td>🍀 Desfile de San Patricio · Fiesta en Dublin</td>
+          <td><span class="night-tag" style="background:#fff0f3;color:#c0392b">Dublin</span></td>
+        </tr>
+        <tr class="stage-sep"><td colspan="4">🚗 Etapa 2 — Road Trip</td></tr>
+        <tr>
+          <td><span class="day-badge" style="background:#c0392b">5</span></td>
+          <td>Mié 18</td>
+          <td>Dublin → <strong>Carlingford</strong> (almuerzo) → <strong>Belfast</strong> (parada) → <strong>Dunfanaghy</strong></td>
+          <td><span class="night-tag" style="background:#fde8e8;color:#c0392b">Donegal</span></td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background:#8e44ad">6</span></td>
+          <td>Jue 19</td>
+          <td><strong>Malin Head</strong> → <strong>Fanad Head</strong> → <strong>Slieve League</strong> → <strong>Galway</strong></td>
+          <td><span class="night-tag" style="background:#f3e8fd;color:#8e44ad">Galway</span></td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background:#2980b9">7</span></td>
+          <td>Vie 20</td>
+          <td>Galway rápido → <strong>Cliffs of Moher</strong> → Doolin → <strong>Killarney</strong></td>
+          <td><span class="night-tag" style="background:#e8f4fd;color:#2980b9">Kerry</span></td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background:#e67e22">8</span></td>
+          <td>Sáb 21</td>
+          <td><strong>Dingle / Slea Head Drive</strong> · Killarney National Park</td>
+          <td><span class="night-tag" style="background:#fef3e8;color:#e67e22">Kerry</span></td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background:#16a085">9</span></td>
+          <td>Dom 22</td>
+          <td>Killarney → <strong>Blarney Castle</strong> (Cork) → <strong>Kinsale</strong></td>
+          <td><span class="night-tag" style="background:#e8f8f5;color:#16a085">Kinsale</span></td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background:#2c3e50">10</span></td>
+          <td>Lun 23</td>
+          <td>Kinsale 08:30 ✈️ → Dublin Airport → Vuelo 16:50</td>
+          <td><span class="night-tag" style="background:#eaecee;color:#2c3e50">— Vuelo —</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <strong style="font-size:0.82rem;">Leyenda:</strong>
+    <div class="legend-item"><div class="leg-dot" style="background:var(--green)"></div> Dublin</div>
+    <div class="legend-item"><div class="leg-dot" style="background:#c0392b"></div> Donegal</div>
+    <div class="legend-item"><div class="leg-dot" style="background:#8e44ad"></div> Galway</div>
+    <div class="legend-item"><div class="leg-dot" style="background:#2980b9"></div> Clare / Kerry</div>
+    <div class="legend-item"><div class="leg-dot" style="background:#16a085"></div> Cork</div>
+    <div class="legend-item"><div class="leg-ferry"></div> Ferry Shannon</div>
+    <div class="legend-item"><div class="leg-diamond"></div> Landmark opcional</div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button class="btn" onclick="expandAll()">+ Expandir todo</button>
+    <button class="btn" onclick="collapseAll()">− Colapsar todo</button>
+  </div>
+
+  <!-- STAGE 1 -->
+  <div class="stage-label stage1">☘️ Etapa 1 — Dublín (14–17 marzo)</div>
+
+  <div class="day-card" id="day14">
+    <div class="day-header h-dublin" onclick="toggle('day14')">
+      <div class="day-num c-dublin">14</div>
+      <div class="day-info"><h3>Sábado 14 · Llegada a Dublín</h3><div class="route">DUB 12:40 · Temple Bar · Dublin Castle</div></div>
+      <div class="day-arrow" id="arr-day14">▼</div>
+    </div>
+    <div class="day-body" id="body-day14">
+      <div class="segment">
+        <div class="segment-title">🌞 Tarde</div>
+        <div class="activity"><div class="act-time">12:40</div><div class="act-content"><h4>Llegada a DUB</h4><p>Recogida equipaje. Airlink Express o taxi al Airbnb (€8–15, 30–40 min).</p></div></div>
+        <div class="activity"><div class="act-time">13:30</div><div class="act-content"><h4>🏠 Airbnb — Check-in</h4><p><strong>6B Glendoher Drive, Rathfarnham, County Dublin D16 A8X7</strong></p></div></div>
+        <div class="activity"><div class="act-time">14:30</div><div class="act-content"><h4>Temple Bar & Dublin Castle</h4><p>Primer paseo. Exterior del castillo y barrio histórico.</p></div></div>
+        <div class="activity"><div class="act-time">16:30</div><div class="act-content"><h4>The Spire · O'Connell Street · Grafton Street</h4><p>Orientarse en la ciudad. St. Stephen's Green.</p></div></div>
+      </div>
+      <div class="night-box"><div class="night-title">🌙 Noche</div>Cena en Temple Bar · Primera pinta en <strong>The Long Hall</strong> (pub victoriano, est. 1766)</div>
+    </div>
+  </div>
+
+  <div class="day-card" id="day15">
+    <div class="day-header h-dublin" onclick="toggle('day15')">
+      <div class="day-num c-dublin">15</div>
+      <div class="day-info"><h3>Domingo 15 · Dublín Clásico</h3><div class="route">Guinness Storehouse · Trinity College + Book of Kells</div></div>
+      <div class="day-arrow" id="arr-day15">▼</div>
+    </div>
+    <div class="day-body" id="body-day15">
+      <div class="segment">
+        <div class="segment-title">🌅 Mañana</div>
+        <div class="activity"><div class="act-time">11:00</div><div class="act-content"><h4>Guinness Storehouse ⚠️ Reserva</h4><p>7 plantas de historia + pinta en el Gravity Bar. Reserva en guinness-storehouse.com.</p></div></div>
+        <div class="activity"><div class="act-time">13:00</div><div class="act-content"><h4>Trinity College & Book of Kells ⚠️ Reserva · 13:00–15:00</h4><p>Manuscrito del siglo IX. Campus de 1592, muy fotogénico. Reserva en tcd.ie.</p></div></div>
+      </div>
+      <div class="segment">
+        <div class="segment-title">🌞 Tarde</div>
+        <div class="activity"><div class="act-time">13:30</div><div class="act-content"><h4>Spice Bag en Xian 🌶️</h4><p>Recomendación directa. Grafton Street. Especialidad única de Dublín.</p></div></div>
+        <div class="activity"><div class="act-time">15:00</div><div class="act-content"><h4>Paseo libre por el centro</h4><p>Grafton Street, Merrion Square.</p></div></div>
+      </div>
+      <div class="amigos-tip"><strong>☘️ Amigos:</strong> "Trinity college has a beautiful campus to walk around. The Guinness Storehouse is a must!! Try a spice bag — Xian does amazing ones."</div>
+    </div>
+  </div>
+
+  <div class="day-card" id="day16">
+    <div class="day-header h-dublin" onclick="toggle('day16')">
+      <div class="day-num c-dublin">16</div>
+      <div class="day-info"><h3>Lunes 16 · Excursión a Howth</h3><div class="route">DART · Cliff Walk · Fish & Chips en el puerto</div></div>
+      <div class="day-arrow" id="arr-day16">▼</div>
+    </div>
+    <div class="day-body" id="body-day16">
+      <div class="segment">
+        <div class="segment-title">🌅 Mañana</div>
+        <div class="activity"><div class="act-time">09:30</div><div class="act-content"><h4>DART → Howth</h4><p>Tren desde Connolly Station (30 min, €4). Sin coche.</p></div></div>
+        <div class="activity"><div class="act-time">10:00</div><div class="act-content"><h4>Howth Cliff Walk</h4><p>4 km con vistas al mar irlandés e Isla Ireland's Eye. Bien señalizado, 1h30 tranquilo.</p></div></div>
+      </div>
+      <div class="segment">
+        <div class="segment-title">🌞 Tarde</div>
+        <div class="activity"><div class="act-time">12:00</div><div class="act-content"><h4>Almuerzo en el puerto</h4><p>Fish & chips frescos. Mejillones, gambas locales.</p></div></div>
+        <div class="activity"><div class="act-time">14:00</div><div class="act-content"><h4>Howth Castle Gardens</h4><p>Puerto pesquero. DART de vuelta a las 16:00.</p></div></div>
+      </div>
+      <div class="night-box"><div class="night-title">🌙 Noche</div>Cena tranquila en Dublin · Descanso antes de San Patricio</div>
+      <div class="amigos-tip"><strong>☘️ Amigos:</strong> "Howth Cliff walk" — recomendación directa.</div>
+    </div>
+  </div>
+
+  <div class="day-card" id="day17">
+    <div class="day-header h-patricks" onclick="toggle('day17')">
+      <div class="day-num c-patricks">17</div>
+      <div class="day-info"><h3>Martes 17 · 🍀 DÍA DE SAN PATRICIO</h3><div class="route">Desfile O'Connell Street · Temple Bar · Noche épica</div></div>
+      <div class="day-arrow" id="arr-day17">▼</div>
+    </div>
+    <div class="day-body" id="body-day17">
+      <div class="segment">
+        <div class="segment-title">🌅 Mañana</div>
+        <div class="activity"><div class="act-time">10:30</div><div class="act-content"><h4>Posicionarse para el desfile ⚠️</h4><p>El desfile sale a las 12:00. Llegar 1h antes para primera fila. Llevar algo verde.</p></div></div>
+        <div class="activity"><div class="act-time">12:00</div><div class="act-content"><h4>St. Patrick's Day Parade</h4><p>Carrozas, bandas, grupos folclóricos. Dura ~2h.</p></div></div>
+      </div>
+      <div class="segment">
+        <div class="segment-title">🌞 Tarde & Noche</div>
+        <div class="activity"><div class="act-time">14:00</div><div class="act-content"><h4>Almuerzo ⚠️ Reservar mesa con antelación</h4><p>El día más concurrido del año. Sin reserva, imposible.</p></div></div>
+        <div class="activity"><div class="act-time">16:00+</div><div class="act-content"><h4>Temple Bar & fiesta</h4><p>La ciudad entera celebra. Música en vivo en cada esquina.</p></div></div>
+      </div>
+      <div class="logistica"><strong>⚠️ Logística:</strong> Quedarse en el centro a pie todo el día. Transporte saturado. Reservar mesa de cena con semanas de antelación.</div>
+    </div>
+  </div>
+
+  <!-- STAGE 2 -->
+  <div class="stage-label stage2" style="margin-top:12px;">🚗 Etapa 2 — Road Trip (18–23 marzo)</div>
+
+  <div class="day-card" id="day18">
+    <div class="day-header h-road1" onclick="toggle('day18')">
+      <div class="day-num c-road1">18</div>
+      <div class="day-info"><h3>Miércoles 18 · Dublin → Carlingford → Belfast → Dunfanaghy</h3><div class="route">~420 km · Recogida Sixt 10:30 · Salida ~11:15 · Llegada ~19:00</div></div>
+      <div class="day-arrow" id="arr-day18">▼</div>
+    </div>
+    <div class="day-body" id="body-day18">
+      <div class="segment">
+        <div class="segment-title">🌅 Mañana</div>
+        <div class="activity"><div class="act-time">09:30</div><div class="act-content"><h4>Salida del Airbnb → Dublin Airport</h4><p>Rathfarnham a DUB · ~35 min con buffer. Salir sin prisa pero puntuales.</p></div></div>
+        <div class="activity"><div class="act-time">10:30</div><div class="act-content"><h4>🚗 Recogida coche — Sixt, Dublin Airport</h4><p>Reserva confirmada. Trámites ~30-45 min: inspección, seguro, GPS.</p></div></div>
+        <div class="activity"><div class="act-time">11:15</div><div class="act-content"><h4>Salida → Carlingford</h4><p>~90 km · 1h → <strong>1h20 con buffer</strong>. Primera conducción por la izquierda.</p></div></div>
+        <div class="activity"><div class="act-time">12:35</div><div class="act-content"><h4>🏘️ Carlingford ☘️</h4><p>Medieval harbour village en Carlingford Lough. Tholsel, King John's Castle, calles de adoquín. Almuerzo rápido + paseo de 30 min. <strong>Máximo 1h10 aquí.</strong></p></div></div>
+      </div>
+      <div class="segment">
+        <div class="segment-title">🌞 Tarde</div>
+        <div class="activity"><div class="act-time">13:45</div><div class="act-content"><h4>Salida → Belfast</h4><p>~45 km · 50 min → <strong>1h con buffer</strong>.</p></div></div>
+        <div class="activity"><div class="act-time">14:45</div><div class="act-content"><h4>🚢 Belfast — Parada</h4><p>Zona del Titanic (parking gratuito), Cathedral Quarter, Crown Liquor Saloon. <strong>Máximo 1h30 aquí.</strong></p></div></div>
+        <div class="activity"><div class="act-time">16:15</div><div class="act-content"><h4>Salida → Dunfanaghy</h4><p>~220 km · 2h15 → <strong>2h42 con buffer</strong>. Ruta por A6 interior.</p></div></div>
+        <div class="activity"><div class="act-time">18:57</div><div class="act-content"><h4>Dunfanaghy, Donegal</h4><p>Llegada al anochecer. Día largo pero con tres paradas muy distintas.</p></div></div>
+      </div>
+      <div class="night-box"><div class="night-title">🌙 Noche</div><strong>Arnold's Hotel</strong> · Dunfanaghy — Cena en The Mill Restaurant o pub del hotel</div>
+      <div class="logistica"><strong>⚠️ Logística:</strong> Es el día más largo en horas de conducción. Respetar los tiempos en Carlingford y Belfast — si se alarga alguna parada, se llega de noche a Dunfanaghy. Belfast: parking gratuito en la zona del Titanic.</div>
+      <div class="amigos-tip"><strong>☘️ Amigos:</strong> "Hay un sitio de Carlingford entre Dublín y Belfast. Muy viejo y muy guay" (Shane) · Titanic Belfast · Crown Liquor Saloon (Shane) · "Dunfangahy is a beautiful town and very scenic" (Molly)</div>
+    </div>
+  </div>
+
+  <div class="day-card" id="day19">
+    <div class="day-header h-road2" onclick="toggle('day19')">
+      <div class="day-num c-road2">19</div>
+      <div class="day-info"><h3>Jueves 19 · Norte Donegal → Galway</h3><div class="route">Malin Head · Fanad Head · Slieve League · ~350 km · Salida 08:00</div></div>
+      <div class="day-arrow" id="arr-day19">▼</div>
+    </div>
+    <div class="day-body" id="body-day19">
+      <div class="segment">
+        <div class="segment-title">🌅 Mañana (08:00)</div>
+        <div class="activity"><div class="act-time">08:00</div><div class="act-content"><h4>Salida hacia Malin Head</h4><p>75 km · 1h30 → <strong>1h48 con buffer</strong>.</p></div></div>
+        <div class="activity"><div class="act-time">09:48</div><div class="act-content"><h4>Malin Head — punto más norte de Irlanda ⚓</h4><p>10 min a pie desde parking hasta Banba's Crown. Acantilados, Torre WWII, Atlántico abierto. 1h15.</p></div></div>
+        <div class="activity"><div class="act-time">11:05</div><div class="act-content"><h4>Salida → Fanad Head</h4><p>55 km · 1h12 con buffer.</p></div></div>
+        <div class="activity"><div class="act-time">12:17</div><div class="act-content"><h4>Fanad Head Lighthouse 💡</h4><p>El faro más fotografiado de Irlanda. Entre acantilados y Lough Swilly. 1h15.</p></div></div>
+      </div>
+      <div class="segment">
+        <div class="segment-title">🌞 Tarde</div>
+        <div class="activity"><div class="act-time">13:30</div><div class="act-content"><h4>Salida → Slieve League</h4><p>~1h45 → <strong>2h06 con buffer</strong>. Cruzando el interior de Donegal.</p></div></div>
+        <div class="activity"><div class="act-time">15:36</div><div class="act-content"><h4>Slieve League Cliffs ⛰️</h4><p>Acantilados de 601m. Ir al <strong>parking superior Bunglass</strong>. Mejores vistas a 5 min a pie. 1h.</p></div></div>
+        <div class="activity"><div class="act-time">16:36</div><div class="act-content"><h4>Salida → Galway</h4><p>~170 km · 2h15 → <strong>2h42 con buffer</strong>.</p></div></div>
+        <div class="activity"><div class="act-time">19:18</div><div class="act-content"><h4>Llegada a Galway</h4><p>Hora perfecta para cenar y buscar música en vivo.</p></div></div>
+      </div>
+      <div class="night-box"><div class="night-title">🌙 Noche</div><strong>Hotel Meyrick</strong> o The Hardiman, Galway · Cena en Quay Street · Música en Tigh Neachtain</div>
+      <div class="logistica"><strong>⚠️ Logística:</strong> Es el día más largo del viaje en km. Malin Head tiene carreteras de una vía — ir con paciencia. Slieve League: parking SUPERIOR (Bunglass), no el inferior.</div>
+      <div class="amigos-tip"><strong>☘️ Amigos:</strong> "Malin head is the most northernest point in Ireland!! Fanad head lighthouse — a lot of celebrities visit here. The cliffs of Slieve League are amazing!!!"</div>
+    </div>
+  </div>
+
+  <div class="day-card" id="day20">
+    <div class="day-header h-road3" onclick="toggle('day20')">
+      <div class="day-num c-road3">20</div>
+      <div class="day-info"><h3>Viernes 20 · Galway → Cliffs of Moher → Killarney</h3><div class="route">Cliffs · Doolin · Ferry Shannon · Kerry · ~220 km</div></div>
+      <div class="day-arrow" id="arr-day20">▼</div>
+    </div>
+    <div class="day-body" id="body-day20">
+      <div class="segment">
+        <div class="segment-title">🌅 Mañana (08:00)</div>
+        <div class="activity"><div class="act-time">08:00</div><div class="act-content"><h4>Galway rápido</h4><p>Paseo de 45 min: Latin Quarter, Spanish Arch, Salthill. Sin prisa pero sin parar.</p></div></div>
+        <div class="activity"><div class="act-time">09:00</div><div class="act-content"><h4>Salida → Cliffs of Moher ⚠️ Reserva</h4><p>65 km · 1h12 con buffer.</p></div></div>
+        <div class="activity"><div class="act-time">10:12</div><div class="act-content"><h4>Cliffs of Moher ⛰️</h4><p>214m sobre el Atlántico. Paseo desde visitor center a O'Brien's Tower (15 min). Entrada con horario obligatoria. 1h45.</p></div></div>
+        <div class="activity"><div class="act-time">12:00</div><div class="act-content"><h4>Doolin 🎶</h4><p>10 min. Almuerzo en Gus O'Connor's Pub — capital de la música tradicional de Clare.</p></div></div>
+      </div>
+      <div class="segment">
+        <div class="segment-title">🌞 Tarde · Ferry sobre el Shannon</div>
+        <div class="activity"><div class="act-time">13:15</div><div class="act-content"><h4>Killimer Ferry ⛴️</h4><p>Desde Doolin ~45 min a Killimer (Clare). El ferry cruza el estuario del Shannon hasta Tarbert (Kerry) en 20 min. <strong>Ahorra 1h30 vs rodear por Limerick</strong>. Frecuencia cada hora. Sin reserva, pago a bordo (~€20 coche+2 pasajeros).</p></div></div>
+        <div class="activity"><div class="act-time">14:30</div><div class="act-content"><h4>Tarbert → Killarney</h4><p>~1h15 → 1h30 con buffer. Llegada ~16:00.</p></div></div>
+        <div class="activity"><div class="act-time">16:00</div><div class="act-content"><h4>Killarney · Ross Castle</h4><p>Si da tiempo, paseo al lago y Ross Castle (10 min del centro).</p></div></div>
+      </div>
+      <div class="night-box"><div class="night-title">🌙 Noche</div>Killarney · <strong>Killarney Park Hotel</strong> o The Ross · Cena en el centro</div>
+      <div class="logistica"><strong>⚠️ Logística:</strong> El ferry de Killimer sale cada hora en punto. Consultar horario en shannonferries.com. Si se pierde uno, espera 1h — calcular salida de Doolin con margen.</div>
+      <div class="amigos-tip"><strong>☘️ Amigos:</strong> "The cliffs of Moher is a must!!" · "Lot of traditional music in Doolin."</div>
+    </div>
+  </div>
+
+  <div class="day-card" id="day21">
+    <div class="day-header h-road4" onclick="toggle('day21')">
+      <div class="day-num c-road4">21</div>
+      <div class="day-info"><h3>Sábado 21 · Kerry — Dingle & Slea Head</h3><div class="route">Killarney NP · Dingle Town · Slea Head Drive · ~180 km circular</div></div>
+      <div class="day-arrow" id="arr-day21">▼</div>
+    </div>
+    <div class="day-body" id="body-day21">
+      <div class="segment">
+        <div class="segment-title">🌅 Mañana (08:00)</div>
+        <div class="activity"><div class="act-time">08:00</div><div class="act-content"><h4>Killarney National Park</h4><p>Paseo por las orillas del lago. Ross Castle al amanecer con niebla es espectacular. 1h.</p></div></div>
+        <div class="activity"><div class="act-time">09:15</div><div class="act-content"><h4>Salida hacia Dingle</h4><p>50 km · 1h con buffer. Ruta por el Connor Pass (paso de montaña con vistas impresionantes).</p></div></div>
+        <div class="activity"><div class="act-time">10:15</div><div class="act-content"><h4>Dingle Town 🎶</h4><p>Pueblo costero con más pubs per cápita que cualquier ciudad de Irlanda. Paseo, mercado, ambiente auténtico. 1h.</p></div></div>
+      </div>
+      <div class="segment">
+        <div class="segment-title">🌞 Tarde · Slea Head Drive</div>
+        <div class="activity"><div class="act-time">11:30</div><div class="act-content"><h4>Slea Head Drive 🌊</h4><p>Circular de 50 km por la punta de la península. Acantilados, playas de arena negra, vistas a las Islas Skellig (donde se rodó Star Wars). Milenios de historia celta. 3-4h conduciendo despacio.</p></div></div>
+        <div class="activity"><div class="act-time">15:30</div><div class="act-content"><h4>Vuelta a Killarney</h4><p>1h con buffer. Tarde libre en el hotel.</p></div></div>
+      </div>
+      <div class="night-box"><div class="night-title">🌙 Noche</div>Segunda noche Killarney · Cena en Treyvaud's Restaurant o pub local</div>
+      <div class="amigos-tip"><strong>☘️ Amigos:</strong> "Dingle — Skellig Michael (where Star Wars was filmed lol)" · "Drive the Ring of Kerry — Killarney castle & national park"</div>
+    </div>
+  </div>
+
+  <div class="day-card" id="day22">
+    <div class="day-header h-road5" onclick="toggle('day22')">
+      <div class="day-num c-road5">22</div>
+      <div class="day-info"><h3>Domingo 22 · Kerry → Blarney → Kinsale</h3><div class="route">~180 km · Última noche del viaje</div></div>
+      <div class="day-arrow" id="arr-day22">▼</div>
+    </div>
+    <div class="day-body" id="body-day22">
+      <div class="segment">
+        <div class="segment-title">🌅 Mañana (08:00)</div>
+        <div class="activity"><div class="act-time">08:00</div><div class="act-content"><h4>Salida → Blarney Castle</h4><p>~1h15 → <strong>1h30 con buffer</strong> desde Killarney.</p></div></div>
+        <div class="activity"><div class="act-time">09:30</div><div class="act-content"><h4>Blarney Castle ⚠️ Reserva online</h4><p>Besar la Blarney Stone para la buena suerte. Jardines extraordinarios. 1h30.</p></div></div>
+      </div>
+      <div class="segment">
+        <div class="segment-title">🌞 Tarde</div>
+        <div class="activity"><div class="act-time">11:15</div><div class="act-content"><h4>Salida → Kinsale</h4><p>30 min · 36 min con buffer.</p></div></div>
+        <div class="activity"><div class="act-time">11:51</div><div class="act-content"><h4>Kinsale 🌊</h4><p>El pueblo costero más bonito de Cork. Calles de colores, puerto pesquero, gastronomía famosa. Paseo y almuerzo. Tarde libre antes de la última noche.</p></div></div>
+      </div>
+      <div class="night-box"><div class="night-title">🌙 Última noche</div><strong>Trident Hotel</strong> o Blue Haven, Kinsale · Cena en el puerto</div>
+      <div class="logistica"><strong>⚠️ Logística:</strong> Kinsale queda 30 min al sur de Cork ciudad. Mañana hay que salir a las 08:30 — confirmar check-out la noche anterior.</div>
+      <div class="amigos-tip"><strong>☘️ Amigos:</strong> "Kiss the Blarney Stone at Blarney Castle for good luck!" · "Kinsale."</div>
+    </div>
+  </div>
+
+  <div class="day-card" id="day23">
+    <div class="day-header h-return" onclick="toggle('day23')">
+      <div class="day-num c-return">23</div>
+      <div class="day-info"><h3>Lunes 23 · Kinsale → Dublin Airport ✈️</h3><div class="route">Salida 08:30 · Devolución Sixt 14:00 · Vuelo 16:50</div></div>
+      <div class="day-arrow" id="arr-day23">▼</div>
+    </div>
+    <div class="day-body" id="body-day23">
+      <div class="segment">
+        <div class="segment-title">🌅 Mañana</div>
+        <div class="activity"><div class="act-time">08:00</div><div class="act-content"><h4>Desayuno rápido & Check-out</h4><p>Sin demoras. Último desayuno irlandés del viaje.</p></div></div>
+        <div class="activity"><div class="act-time">08:30</div><div class="act-content"><h4>Salida desde Kinsale</h4><p>~290 km hasta DUB · 3h → <strong>3h36 con buffer</strong>. M8 autovía directa.</p></div></div>
+        <div class="activity"><div class="act-time">12:06</div><div class="act-content"><h4>Llegada área aeropuerto</h4><p>Tiempo libre · Almuerzo cerca del aeropuerto o en la terminal.</p></div></div>
+        <div class="activity"><div class="act-time">14:00</div><div class="act-content"><h4>🚗 Devolución coche — Sixt, Dublin Airport</h4><p>Reserva confirmada. Inspección exterior, repostar si hace falta. ~20-30 min de trámites.</p></div></div>
+        <div class="activity"><div class="act-time">14:30</div><div class="act-content"><h4>Terminal de salidas ✅</h4><p><strong>2h20 de margen antes del vuelo. Holgado.</strong></p></div></div>
+      </div>
+      <div class="night-box" style="background:var(--green);">
+        <div class="night-title">✈️ Vuelo de Regreso</div>
+        <strong>16:50 · Dublin (DUB)</strong> — Todo en orden
+      </div>
+      <div class="logistica"><strong>✅ Seguridad de vuelo:</strong> Llegáis al aeropuerto ~2h antes de la devolución confirmada del coche. Margen total muy cómodo.</div>
+    </div>
+  </div>
+
+  <!-- MAPA DUBLIN & BELFAST -->
+  <div class="stage-label stage1" style="margin-top:12px;">🗺️ Mapa Detallado — Dublin & Belfast</div>
+
+  <div style="background:white;border-radius:12px;margin-bottom:24px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+    <!-- Tab buttons -->
+    <div style="display:flex;border-bottom:2px solid #f0f0f0;">
+      <button id="tab-dublin" onclick="switchCity('dublin')"
+        style="flex:1;padding:13px;border:none;cursor:pointer;font-family:Georgia,serif;font-size:0.9rem;font-weight:bold;background:var(--green);color:white;transition:all 0.2s;">
+        🏙️ Dublin
+      </button>
+      <button id="tab-belfast" onclick="switchCity('belfast')"
+        style="flex:1;padding:13px;border:none;cursor:pointer;font-family:Georgia,serif;font-size:0.9rem;font-weight:bold;background:#f8f9fa;color:var(--gray);transition:all 0.2s;">
+        🚢 Belfast
+      </button>
+    </div>
+
+    <!-- Map -->
+    <div id="map-city" style="height:460px;"></div>
+
+    <!-- Legend -->
+    <div style="display:flex;gap:16px;flex-wrap:wrap;padding:12px 18px;font-size:0.8rem;border-top:1px solid #f0f0f0;background:#fafafa;">
+      <strong>Leyenda:</strong>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#2d6a4f;display:inline-block;"></span> Alojamiento</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#2980b9;display:inline-block;"></span> Atracción</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#e67e22;display:inline-block;"></span> Restaurante</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#8e44ad;display:inline-block;"></span> Pub</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#c0392b;display:inline-block;"></span> Aeropuerto / Transporte</span>
+    </div>
+  </div>
+
+  <!-- SUGERENCIAS AMIGOS -->
+  <div class="stage-label stage1" style="margin-top:12px;">💬 Sugerencias de Amigos</div>
+
+  <!-- MOLLY -->
+  <div class="day-card" id="molly">
+    <div class="day-header" style="background:linear-gradient(90deg,#fce4ec,white);" onclick="toggle('molly')">
+      <div class="day-num" style="background:#e91e63;">M</div>
+      <div class="day-info"><h3>Molly 🇮🇪</h3><div class="route">Donegal · Galway · Kerry · Cork · Dublin · Clare · Wicklow</div></div>
+      <div class="day-arrow" id="arr-molly">▼</div>
+    </div>
+    <div class="day-body" id="body-molly">
+
+      <div class="segment"><div class="segment-title">🌊 Donegal — su tierra</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          "The cliffs of Slieve League are amazing!!!" · Donegal has been voted for some of the best beaches in the world · Bundoran is the surfing beach · Malin head is the most northernest point in Ireland!! · Glenveagh park is beautiful · Portsalon beach · Dunfanaghy is a beautiful town and very scenic · The Murderhole in Downings is beautiful · Fanad Head — lighthouse — a lot of celebrities visit here · Mount Errigal — such an amazing view when u climb this mountain at sunrise! · Bellyhiernan beach in Donegal
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🎶 Galway</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          "Galway is beautiful, very artsy & scenic. Really cute pubs & streets — always live music. U could do a day trip to the Aran Islands from there. Salthill is also a lovely walk across the water."
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">⛰️ Clare</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          "The cliffs of Moher is a must!!" · Lot of traditional music in Doolin
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🌿 Kerry</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          Drive the Ring of Kerry · Killarney castle & national park · Dingle · Skellig Michael (where Star Wars was filmed lol)
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🏰 Cork</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          Kiss the Blarney Stone at Blarney Castle for good luck! · Kinsale · Jameson Distillery Midleton
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🏙️ Dublin</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          "The Guinness Storehouse is a must!!" · Trinity College Dublin (where I went to uni) — beautiful campus, very famous, also find the Book of Kells · Howth Cliff Walk · Dublin Castle & Temple Bar · The Spire on O'Connell Street · Grafton Street · "U have to try a spice bag! Xian does amazing ones hehe"
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🌄 Wicklow</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          Wicklow Mountains National Park · Glendalough · Scenic drive through the Sally Gap
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SHANE -->
+  <div class="day-card" id="shane">
+    <div class="day-header" style="background:linear-gradient(90deg,#e3f2fd,white);" onclick="toggle('shane')">
+      <div class="day-num" style="background:#1565c0;">S</div>
+      <div class="day-info"><h3>Shane 🇮🇪</h3><div class="route">Dublin · Belfast · Carlingford · Restaurantes · Pubs</div></div>
+      <div class="day-arrow" id="arr-shane">▼</div>
+    </div>
+    <div class="day-body" id="body-shane">
+
+      <div class="segment"><div class="segment-title">⚠️ Nota de Shane</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#c0392b;font-style:italic;">
+          "Cuidado con las reservaciones de restaurantes y pubs porque es un finde a tope en Irlanda."
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🏙️ Dublin — Sitios</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          Guinness Tour · St Patrick's Cathedral · Temple Bar area (very very busy for St Paddy's Day) · Capel Street (very busy for St Paddy's Day) · Ha'penny Bridge — along the leafy river · Phoenix Park — stunning
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🍽️ Dublin — Restaurantes</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          Old Mill — very traditional Irish food, good on a Sunday · The Vintage Kitchen · Mr Fox · Trocadero · Griolladh — "sandwiches from heaven 🤣"
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🍺 Dublin — Pubs</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          The Brazen Head — must see (Ireland's oldest pub) · The Stag's Head · James Toner's — live music pub · Temple Bar — very touristy and costly, but many bars in this area
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🚢 Belfast — Sitios</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          St George's Market · Titanic Belfast · Queens Arcade · Cathedral Quarter · Hill Street · Commercial Court
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🍽️ Belfast — Restaurantes</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          OX Belfast · The Teal Monkey · Darcy's Belfast
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🍺 Belfast — Pubs</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          The Crown Liquor Saloon · Kelly's Cellars · Sunflower Public House · Duke of York · The Dirty Onion and Yardbird · White's Tavern · The John Hewitt · The Garrick · The Spaniard · The Points · The Thirsty Goat
+        </p>
+      </div>
+
+      <div class="segment"><div class="segment-title">🏘️ Carlingford</div>
+        <p style="font-size:0.88rem;line-height:1.8;color:#333;">
+          "Hay un sitio de Carlingford entre Dublín y Belfast. Muy viejo y muy guay, si podéis ir por allí 🙏 Música en directo y un pueblo muy viejo y rico!"
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>☘️ Irlanda · Javi & Papá · Marzo 2026</footer>
+
+<script>
+const map = L.map('map').setView([53.5, -8.0], 6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap', maxZoom: 18
+}).addTo(map);
+
+// Main route stops — orden cronológico de la ruta
+const mainStops = [
+  { name: "Dublin", coords: [53.3498, -6.2603], color: "#2d6a4f", day: "Días 1–4 · 14–17 mar", icon: "🏙️" },
+  { name: "Carlingford", coords: [54.0415, -6.1847], color: "#c0392b", day: "Día 5 · Mié 18 · Almuerzo", icon: "🏘️" },
+  { name: "Belfast", coords: [54.5973, -5.9301], color: "#c0392b", day: "Día 5 · Mié 18 · Parada tarde", icon: "🚢" },
+  { name: "Dunfanaghy", coords: [55.1728, -7.9710], color: "#c0392b", day: "Día 5 · Mié 18 · Noche", icon: "🌊" },
+  { name: "Malin Head", coords: [55.3725, -7.3946], color: "#8e44ad", day: "Día 6 · Jue 19 · Punto más norte de Irlanda", icon: "⚓" },
+  { name: "Fanad Head", coords: [55.2756, -7.6339], color: "#8e44ad", day: "Día 6 · Jue 19 · Faro", icon: "💡" },
+  { name: "Slieve League", coords: [54.6378, -8.6869], color: "#8e44ad", day: "Día 6 · Jue 19 · Acantilados 601m", icon: "⛰️" },
+  { name: "Galway", coords: [53.2707, -9.0568], color: "#8e44ad", day: "Día 6 · Jue 19 · Noche", icon: "🎶" },
+  { name: "Cliffs of Moher", coords: [52.9715, -9.4309], color: "#2980b9", day: "Día 7 · Vie 20 · ⚠️ Reserva entrada", icon: "⛰️" },
+  { name: "Doolin", coords: [53.0197, -9.3758], color: "#2980b9", day: "Día 7 · Vie 20 · Almuerzo · Música tradicional", icon: "🎵" },
+  { name: "Killimer Ferry ⛴️", coords: [52.5760, -9.4180], color: "#3498db", day: "Día 7 · Vie 20 · Ferry Shannon → Tarbert · Ahorra 1h30", icon: "⛴️" },
+  { name: "Killarney", coords: [52.0543, -9.5044], color: "#2980b9", day: "Días 7–8 · Vie–Sáb · Base Kerry", icon: "🏰" },
+  { name: "Dingle / Slea Head Drive", coords: [52.0990, -10.4630], color: "#e67e22", day: "Día 8 · Sáb 21 · Circular 50km", icon: "🌊" },
+  { name: "Blarney Castle", coords: [51.9293, -8.5697], color: "#16a085", day: "Día 9 · Dom 22 · Besar la piedra 🍀", icon: "🏰" },
+  { name: "Kinsale", coords: [51.7060, -8.5218], color: "#16a085", day: "Día 9 · Dom 22 · Última noche", icon: "⚓" },
+];
+
+// Ruta exacta en orden geográfico (incluye Belfast entre Carlingford y Dunfanaghy)
+const routeCoords = [
+  [53.3498, -6.2603],  // Dublin
+  [54.0415, -6.1847],  // Carlingford
+  [54.5973, -5.9301],  // Belfast
+  [55.1728, -7.9710],  // Dunfanaghy
+  [55.3725, -7.3946],  // Malin Head
+  [55.2756, -7.6339],  // Fanad Head
+  [54.6378, -8.6869],  // Slieve League
+  [53.2707, -9.0568],  // Galway
+  [52.9715, -9.4309],  // Cliffs of Moher
+  [53.0197, -9.3758],  // Doolin
+  [52.5760, -9.4180],  // Killimer Ferry
+  [52.0543, -9.5044],  // Killarney
+  [52.0990, -10.4630], // Dingle/Slea Head
+  [51.9293, -8.5697],  // Blarney Castle
+  [51.7060, -8.5218],  // Kinsale
+  [53.3498, -6.2603],  // Dublin (vuelta)
+];
+
+// Optional landmarks (excluye landmarks específicos de Dublin y Belfast — están en sus mapas propios)
+const optionalLandmarks = [
+  { name: "Howth", coords: [53.3880, -6.0650], desc: "Día 16 · Excursión DART desde Dublin · Cliff Walk + Fish & Chips." },
+  { name: "Donegal Town", coords: [54.6543, -8.1096], desc: "Capital del condado. Castillo de Donegal, centro histórico." },
+  { name: "Lough Eske", coords: [54.6167, -7.9833], desc: "Lago tranquilo cerca de Donegal Town. Harvey's Point hotel famoso." },
+  { name: "Killybegs", coords: [54.6335, -8.4465], desc: "Puerto pesquero más importante de Irlanda. De camino a Slieve League." },
+  { name: "Bundoran", coords: [54.4787, -8.2793], desc: "Capital del surf en Irlanda. Playa favorita de surfistas." },
+  { name: "Mount Errigal", coords: [55.0317, -8.1132], desc: "Montaña cónica de 751m cerca de Dunfanaghy. Vista brutal desde la cumbre." },
+  { name: "Glenveagh National Park", coords: [55.0317, -7.9181], desc: "Valle remoto con castillo victoriano, lago y ciervos. 25 min de Dunfanaghy." },
+  { name: "The Burren", coords: [53.0667, -9.0500], desc: "Paisaje lunar de roca caliza. Flora única. Entre Galway y los Cliffs." },
+  { name: "Killarney National Park", coords: [52.0214, -9.5344], desc: "Parque nacional con lagos, cascadas y ciervos. Base en Killarney Días 7–8." },
+  { name: "Ross Castle", coords: [52.0430, -9.5211], desc: "Castillo medieval en el lago Leane. Killarney National Park. 10 min del centro." },
+  { name: "Ring of Kerry 🔄", coords: [51.9468, -10.2244], desc: "Ruta circular de 180km por la Península de Iveragh. Alternativa a Dingle para el Día 8. Waterville, Cahersiveen, Ladies View." },
+  { name: "Skellig Michael ⭐", coords: [51.7717, -10.5378], desc: "Isla donde se rodó Star Wars. ⚠️ Barcos solo mayo–octubre — en marzo no opera. Visible desde Slea Head Drive con prismáticos." },
+  { name: "Rock of Cashel", coords: [52.5205, -7.8908], desc: "Ciudadela medieval del siglo XII. En la ruta Cork–Dublin (Día 23)." },
+  { name: "Kilkenny", coords: [52.6541, -7.2448], desc: "Ciudad medieval mejor conservada de Irlanda. En la ruta Cork–Dublin (Día 23)." },
+  { name: "Enniskerry / Powerscourt", coords: [53.1817, -6.1857], desc: "Jardines de Powerscourt. 20 km al sur de Dublin. Wicklow." },
+  { name: "Sally Gap", coords: [53.1461, -6.3272], desc: "Ruta escénica por las montañas de Wicklow. Turba, lagos, silencio." },
+  { name: "Glendalough", coords: [53.0064, -6.3294], desc: "Monasterio del siglo VI en un valle de Wicklow. Lagos y ruinas celtas." },
+];
+
+L.polyline(routeCoords, { color: '#2d6a4f', weight: 3, opacity: 0.55, dashArray: '7,5' }).addTo(map);
+
+// Main stop markers
+mainStops.forEach((stop, i) => {
+  const isFerry = stop.name.includes('Ferry');
+  const marker = L.circleMarker(stop.coords, {
+    radius: isFerry ? 8 : 11,
+    fillColor: stop.color,
+    color: 'white',
+    weight: 2,
+    opacity: 1,
+    fillOpacity: 0.92
+  }).addTo(map);
+  marker.bindPopup(`<strong>${stop.icon} ${stop.name}</strong><br><span style="color:#555;font-size:0.82rem;">${stop.day}</span>`);
+});
+
+// Optional landmark markers (diamond shape via rotated square using divIcon)
+optionalLandmarks.forEach(lm => {
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="width:12px;height:12px;background:#f39c12;transform:rotate(45deg);border:2px solid #d68910;border-radius:2px;"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6]
+  });
+  const marker = L.marker(lm.coords, { icon }).addTo(map);
+  marker.bindPopup(`<strong>⭐ ${lm.name}</strong><br><span style="color:#856404;font-size:0.75rem;font-weight:bold;">Landmark opcional</span><br><span style="color:#555;font-size:0.81rem;">${lm.desc}</span>`);
+});
+
+function toggle(id) {
+  const body = document.getElementById('body-' + id);
+  const arrow = document.getElementById('arr-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+function expandAll() {
+  document.querySelectorAll('.day-body').forEach(b => b.classList.add('open'));
+  document.querySelectorAll('.day-arrow').forEach(a => a.classList.add('open'));
+}
+function collapseAll() {
+  document.querySelectorAll('.day-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.day-arrow').forEach(a => a.classList.remove('open'));
+}
+
+// Open Day 19 by default (most packed day)
+toggle('day19');
+
+// ── CITY MAP ──
+const dublinPoints = [
+  { name: "🏠 Airbnb", coords: [53.2901, -6.3128], color: "#2d6a4f", desc: "6B Glendoher Drive, Rathfarnham, D16 A8X7" },
+  { name: "✈️ Dublin Airport (DUB) — Sixt", coords: [53.4264, -6.2499], color: "#c0392b", desc: "Recogida Sixt · 10:30 · Día 18 | Devolución Sixt · 14:00 · Día 23" },
+  { name: "🍺 Guinness Storehouse", coords: [53.3418, -6.2868], color: "#2980b9", desc: "Día 15 · 11:00 — 7 plantas + Gravity Bar" },
+  { name: "📚 Trinity College & Book of Kells", coords: [53.3439, -6.2546], color: "#2980b9", desc: "Día 15 · 13:00–15:00" },
+  { name: "🏰 Dublin Castle", coords: [53.3430, -6.2671], color: "#2980b9", desc: "Día 14 · Tarde" },
+  { name: "🎉 Temple Bar", coords: [53.3457, -6.2648], color: "#2980b9", desc: "San Patricio + noches" },
+  { name: "🗼 The Spire · O'Connell Street", coords: [53.3498, -6.2603], color: "#2980b9", desc: "Icono de Dublin" },
+  { name: "🛍️ Grafton Street", coords: [53.3403, -6.2591], color: "#2980b9", desc: "Calle peatonal principal" },
+  { name: "🌿 St Stephen's Green", coords: [53.3382, -6.2591], color: "#2980b9", desc: "Parque en el centro" },
+  { name: "🌉 Ha'Penny Bridge", coords: [53.3464, -6.2638], color: "#2980b9", desc: "Puente peatonal icónico sobre el Liffey" },
+  { name: "⛪ St Patrick's Cathedral", coords: [53.3393, -6.2702], color: "#2980b9", desc: "Catedral del siglo XII" },
+  { name: "🌳 Phoenix Park", coords: [53.3598, -6.3280], color: "#2980b9", desc: "Uno de los parques urbanos más grandes de Europa" },
+  { name: "🛍️ Capel Street", coords: [53.3486, -6.2650], color: "#2980b9", desc: "Ambiente local, bares y tiendas" },
+  { name: "🌊 Howth (DART)", coords: [53.3880, -6.0650], color: "#2980b9", desc: "Día 16 · Cliff Walk + fish & chips" },
+  { name: "🌶️ Xian — Spice Bag", coords: [53.3400, -6.2601], color: "#e67e22", desc: "Recomendación de Molly — must try" },
+  { name: "🍽️ Old Mill", coords: [53.3430, -6.2720], color: "#e67e22", desc: "Recomendación Shane — comida tradicional irlandesa" },
+  { name: "🍽️ The Vintage Kitchen", coords: [53.3392, -6.2548], color: "#e67e22", desc: "Recomendación Shane" },
+  { name: "🍽️ Mr Fox", coords: [53.3510, -6.2624], color: "#e67e22", desc: "Recomendación Shane" },
+  { name: "🍽️ Trocadero", coords: [53.3420, -6.2600], color: "#e67e22", desc: "Recomendación Shane — clásico de Dublin" },
+  { name: "🥪 Griolladh", coords: [53.3445, -6.2635], color: "#e67e22", desc: "Shane: sandwiches from heaven 🤣" },
+  { name: "🍺 The Long Hall", coords: [53.3409, -6.2617], color: "#8e44ad", desc: "Pub victoriano est. 1766 — primera pinta" },
+  { name: "🍺 The Brazen Head", coords: [53.3441, -6.2774], color: "#8e44ad", desc: "El pub más antiguo de Irlanda — Shane must see" },
+  { name: "🍺 The Stag's Head", coords: [53.3441, -6.2621], color: "#8e44ad", desc: "Recomendación Shane" },
+  { name: "🎵 James Toner's", coords: [53.3356, -6.2548], color: "#8e44ad", desc: "Shane — live music pub" },
+];
+
+const belfastPoints = [
+  { name: "🚢 Titanic Belfast", coords: [54.6071, -5.9110], color: "#2980b9", desc: "Museo del Titanic — imprescindible" },
+  { name: "🏛️ St George's Market", coords: [53.5960, -5.9238], color: "#2980b9", desc: "Recomendación Shane — mercado histórico" },
+  { name: "🏛️ Cathedral Quarter", coords: [54.6006, -5.9282], color: "#2980b9", desc: "Barrio bohemio — murales y bares" },
+  { name: "🏛️ Hill Street", coords: [54.6015, -5.9275], color: "#2980b9", desc: "Recomendación Shane" },
+  { name: "🛍️ Queens Arcade", coords: [54.5971, -5.9320], color: "#2980b9", desc: "Recomendación Shane" },
+  { name: "🍽️ OX Belfast", coords: [54.5985, -5.9268], color: "#e67e22", desc: "Recomendación Shane — alta cocina" },
+  { name: "🍽️ The Teal Monkey", coords: [54.5978, -5.9295], color: "#e67e22", desc: "Recomendación Shane" },
+  { name: "🍽️ Darcy's Belfast", coords: [54.5932, -5.9345], color: "#e67e22", desc: "Recomendación Shane" },
+  { name: "🍺 The Crown Liquor Saloon", coords: [54.5963, -5.9300], color: "#8e44ad", desc: "Victorian gin palace — imprescindible" },
+  { name: "🍺 Kelly's Cellars", coords: [54.5989, -5.9330], color: "#8e44ad", desc: "Recomendación Shane — pub histórico" },
+  { name: "🍺 Duke of York", coords: [54.6008, -5.9298], color: "#8e44ad", desc: "Recomendación Shane" },
+  { name: "🍺 The Dirty Onion", coords: [54.6010, -5.9275], color: "#8e44ad", desc: "Recomendación Shane" },
+  { name: "🍺 White's Tavern", coords: [54.5997, -5.9285], color: "#8e44ad", desc: "Recomendación Shane" },
+  { name: "🍺 The John Hewitt", coords: [54.6002, -5.9290], color: "#8e44ad", desc: "Recomendación Shane" },
+  { name: "🍺 Sunflower Public House", coords: [54.5975, -5.9318], color: "#8e44ad", desc: "Recomendación Shane" },
+];
+
+let cityMap = null;
+let currentMarkers = [];
+
+function initCityMap() {
+  cityMap = L.map('map-city').setView([53.345, -6.265], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 18
+  }).addTo(cityMap);
+  loadCityMarkers(dublinPoints, [53.345, -6.265], 13);
+}
+
+function loadCityMarkers(points, center, zoom) {
+  currentMarkers.forEach(m => cityMap.removeLayer(m));
+  currentMarkers = [];
+  cityMap.setView(center, zoom);
+  points.forEach(p => {
+    const m = L.circleMarker(p.coords, {
+      radius: 10, fillColor: p.color, color: 'white', weight: 2, fillOpacity: 0.92
+    }).addTo(cityMap);
+    m.bindPopup(`<strong>${p.name}</strong><br><span style="font-size:0.82rem;color:#555;">${p.desc}</span>`);
+    currentMarkers.push(m);
+  });
+}
+
+function switchCity(city) {
+  const tabD = document.getElementById('tab-dublin');
+  const tabB = document.getElementById('tab-belfast');
+  if (city === 'dublin') {
+    tabD.style.background = 'var(--green)'; tabD.style.color = 'white';
+    tabB.style.background = '#f8f9fa'; tabB.style.color = 'var(--gray)';
+    loadCityMarkers(dublinPoints, [53.345, -6.265], 13);
+  } else {
+    tabB.style.background = '#1565c0'; tabB.style.color = 'white';
+    tabD.style.background = '#f8f9fa'; tabD.style.color = 'var(--gray)';
+    loadCityMarkers(belfastPoints, [54.600, -5.930], 14);
+  }
+}
+
+// Init city map after main map is set up
+setTimeout(initCityMap, 100);
+</script>
+</body>
+</html>
